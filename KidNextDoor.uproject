@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{C7B6BCE1-41EF-AFE2-FB9D-0C91A39248C2}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "KidNextDoor",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
