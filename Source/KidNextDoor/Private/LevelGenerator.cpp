@@ -1,64 +1,77 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "LevelGenerator.h"
-#include "Room.h"
+#include "Runtime/Core/Public/Math/UnrealMathUtility.h"
+#include "Kismet/GameplayStatics.h"
+#include "PropSpawnPoint.h"
+#include "Engine/World.h"
+#include "Engine/GameEngine.h"
 
 
-// Sets default values for this component's properties
-ULevelGenerator::ULevelGenerator()
+// Sets default values
+ALevelGenerator::ALevelGenerator()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
 
-	// ...
 }
 
-
-// Called when the game starts
-void ULevelGenerator::BeginPlay()
+// Called when the game starts or when spawned
+void ALevelGenerator::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
+	GenerateLevel();
+}
+void ALevelGenerator::SpawnIED(FVector spawnPoint)
+{
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("IED SPAWNED"));
 }
 
-
-// Called every frame
-void ULevelGenerator::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void ALevelGenerator::SpawnProp(FVector spawnPoint)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("prop Spawned"));
 }
 
-void ULevelGenerator::GenerateLevel()
+TArray<AActor*> ALevelGenerator::FindAllSpawnPoints()
 {
-	/*
-	int numberOfSpawnLocations = 0;
-	TArray<FVector> spawnPoints;
-	for (int i = 0; i < rooms.Num(); i++)
+	TArray<AActor *> retVal;
+	TSubclassOf<AActor> classToFind;
+	classToFind = AActor::StaticClass();
+	TArray<AActor*> foundSpawns;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), classToFind, foundSpawns);
+
+	TSubclassOf<UPropSpawnPoint> componentClassToFind;
+	componentClassToFind = UPropSpawnPoint::StaticClass();
+	TArray<UPropSpawnPoint> foundComponents;
+	for (int i = 0; i < foundSpawns.Num(); i++)
 	{
-		if (rooms[i] != nullptr)
+		foundSpawns[i]->GetComponentsByClass<componentClassToFind>(foundComponents);
+		if (foundSpawns.Num() != 0)
 		{
-			numberOfSpawnLocations += rooms[i]->SpawnPoints.Num;
-			while(rooms[i]->CanSpawn())
-			{
-				//unload spawn points from room
-				spawnPoints.Add(rooms[i]->Spawn());
-			}
+			retVal.Add(foundSpawns[i]);
 		}
+		foundComponents = TArray<UPropSpawnPoint>();
 	}
-	if (numberOfSpawnLocations >= targetNumberOfIEDS)
-	{
-		int spawned = 0;
-		while (spawned < spawnPoints)
-		{
-			SpawnIED(spawnPoints[spawned]);
-		}
-		for (; spawned < spawnPoints)
-
-	}*/
+	return retVal;
 }
+// Called every frame
+void ALevelGenerator::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 
+}
+void ALevelGenerator::GenerateLevel()
+{
+	TArray<AActor *> spawnPoints = FindAllSpawnPoints();
+	int numberOfSpawnLocations = spawnPoints.Num();
+	int spawned = 0;
+	int ToBeSpawned = (int)(propSpawnRate / 100.0f * numberOfSpawnLocations);
+	while (spawned < ToBeSpawned)
+	{
+		FMath::RandRange(0, 100) <= percentageOfIEDS ? SpawnIED(spawnPoints[spawned]->GetTransform().GetLocation()) : SpawnProp(spawnPoints[spawned]->GetTransform().GetLocation());
+		spawned++;
+	}
+
+}
