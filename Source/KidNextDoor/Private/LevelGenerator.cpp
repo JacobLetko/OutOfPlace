@@ -13,7 +13,6 @@ ALevelGenerator::ALevelGenerator()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 // Called when the game starts or when spawned
@@ -47,8 +46,7 @@ TArray<AActor*> ALevelGenerator::FindAllSpawnPoints()
 	TArray<UPropSpawnPoint> foundComponents;
 	for (int i = 0; i < foundSpawns.Num(); i++)
 	{
-		foundSpawns[i]->GetComponentsByClass<componentClassToFind>(foundComponents);
-		if (foundSpawns.Num() != 0)
+		if (foundSpawns[i]->GetComponentByClass(componentClassToFind) != nullptr)
 		{
 			retVal.Add(foundSpawns[i]);
 		}
@@ -73,5 +71,4 @@ void ALevelGenerator::GenerateLevel()
 		FMath::RandRange(0, 100) <= percentageOfIEDS ? SpawnIED(spawnPoints[spawned]->GetTransform().GetLocation()) : SpawnProp(spawnPoints[spawned]->GetTransform().GetLocation());
 		spawned++;
 	}
-
 }

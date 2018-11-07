@@ -24,13 +24,10 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	UPROPERTY(EditAnywhere)
-		// number of bombs
-		int targetNumberOfIEDS;
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
-		float propSpawnRate;
+		float propSpawnRate = 75;
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
-		float percentageOfIEDS;
+		float percentageOfIEDS = 30;
 	UPROPERTY(EditAnywhere)
 		// Props to be spawned
 		TArray<AActor *> IEDS;
