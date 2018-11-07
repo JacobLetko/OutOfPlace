@@ -6,6 +6,7 @@
 #include "PropSpawnPoint.h"
 #include "Engine/World.h"
 #include "Engine/GameEngine.h"
+#include "StaticMeshActor.generated.h"
 
 
 // Sets default values
@@ -25,12 +26,37 @@ void ALevelGenerator::SpawnIED(FVector spawnPoint)
 {
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("IED SPAWNED"));
+	
 }
 
 void ALevelGenerator::SpawnProp(FVector spawnPoint)
 {
+	if (props.Num() == 0)
+	{
+		AActor* WhatToSpawn = props[FMath::RandRange(0, props.Num() - 1)];
+		UWorld* const World = GetWorld();
+		if (World && WhatToSpawn != NULL)
+		{
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = Instigator;
+
+
+			FRotator SpawnRotation;
+			SpawnRotation.Yaw = FMath::FRand() * 360.0f;
+			SpawnRotation.Pitch = 0;
+			SpawnRotation.Roll = 0;
+
+																				// make sure this isnt null at some point//
+			AActor* const SpawnedPickup = World->SpawnActor<AActor>(spawnPoint, SpawnRotation, SpawnParams);
+
+			if (GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("prop Spawned"));
+		}
+	}
 	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("prop Spawned"));
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("prop Spawn CALLED " + props.Num() + " PROPS"));
 }
 
 TArray<AActor*> ALevelGenerator::FindAllSpawnPoints()
@@ -64,8 +90,13 @@ void ALevelGenerator::GenerateLevel()
 {
 	TArray<AActor *> spawnPoints = FindAllSpawnPoints();
 	int numberOfSpawnLocations = spawnPoints.Num();
-	int spawned = 0;
+	int spawned = 1;
 	int ToBeSpawned = (int)(propSpawnRate / 100.0f * numberOfSpawnLocations);
+	//make sure at least one IED is placed at a random point
+	int rand = numberOfSpawnLocations == 0 ? 0 : FMath::RandRange(0, numberOfSpawnLocations - 1);
+	spawnPoints.Swap(0, rand);
+	SpawnIED(spawnPoints[spawned]->GetTransform().GetLocation());
+	//spawn the rest
 	while (spawned < ToBeSpawned)
 	{
 		FMath::RandRange(0, 100) <= percentageOfIEDS ? SpawnIED(spawnPoints[spawned]->GetTransform().GetLocation()) : SpawnProp(spawnPoints[spawned]->GetTransform().GetLocation());
